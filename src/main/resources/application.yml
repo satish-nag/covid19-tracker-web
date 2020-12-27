@@ -1,0 +1,8 @@
+server:
+  port: 8081
+spring:
+  jpa:
+    show-sql: true
+aws:
+  accessKey: AKIATDHGKMHMU7KZWOVP
+  secretKey: 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

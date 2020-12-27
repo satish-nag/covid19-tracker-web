@@ -1,0 +1,3 @@
+POST http://localhost:8081/patient/getOtp?mobileNumber=9985768789
+
+###
