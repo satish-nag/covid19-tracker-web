@@ -3,6 +3,15 @@ server:
 spring:
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    username: test
+    password: 3w9LID4VAg2v3mGdqHhr3w==
+    url: jdbc:mysql://192.168.56.101:3306/covid19tracker
 aws:
   accessKey: AKIATDHGKMHMU7KZWOVP
   secretKey: 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

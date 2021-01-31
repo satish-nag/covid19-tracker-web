@@ -1,6 +1,6 @@
 package com.covid19tracker.web.services.impl;
 
-import com.covid19tracker.web.entities.PatientEntity;
+import com.covid19tracker.web.entities.Patient;
 import com.covid19tracker.web.models.GenericResponse;
 import com.covid19tracker.web.repositories.PatientRepository;
 import com.covid19tracker.web.services.PatientService;
@@ -25,18 +25,18 @@ public class PatientServiceImpl implements PatientService {
     AWSHelper awsHelper;
 
     @Override
-    public PatientEntity registerTest(PatientEntity patientEntity) {
-        log.info("Registering the patient with name {}, mobile_number {}, email {}",patientEntity.getName(),patientEntity.getMobileNumber(),patientEntity.getEmail());
-        PatientEntity patientEntity1 = patientRepository.save(patientEntity);
-        awsHelper.sendSMS(patientEntity.getCountryCode()+patientEntity.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patientEntity1.getApplicationId()+", please save for future reference");
-        awsHelper.sendEmail("saatish.naga@gmail.com",patientEntity.getEmail(),null,null,"Hi "+patientEntity.getName()+",<br/><br/>You have successfully registered for the test, your application id is "+patientEntity1.getApplicationId()+". Please save the application ID for future Reference</p> <br/><br/> Regards,<br/>Team COVID Tracker","Successfully Regersterd for COVID Test");
-        log.info("Registration is successful for the patient {}, and application_id is {}",patientEntity1.getName(),patientEntity1.getApplicationId());
-        return patientEntity1;
+    public Patient registerTest(Patient patient) {
+        log.info("Registering the patient with name {}, mobile_number {}, email {}", patient.getName(), patient.getMobileNumber(), patient.getEmail());
+        Patient patient1 = patientRepository.save(patient);
+        //awsHelper.sendSMS(patientEntity.getCountryCode()+patientEntity.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patientEntity1.getApplicationId()+", please save for future reference");
+        //awsHelper.sendEmail("saatish.naga@gmail.com",patientEntity.getEmail(),null,null,"Hi "+patientEntity.getName()+",<br/><br/>You have successfully registered for the test, your application id is "+patientEntity1.getApplicationId()+". Please save the application ID for future Reference</p> <br/><br/> Regards,<br/>Team COVID Tracker","Successfully Regersterd for COVID Test");
+        log.info("Registration is successful for the patient {}, and application_id is {}", patient1.getName(), patient1.getApplicationId());
+        return patient1;
     }
 
     @Override
     public ResponseEntity<GenericResponse<String>> getOtp(String mobileNumber) {
-        List<PatientEntity> patientEntities = patientRepository.getPatientEntitiesByApplicationIdOrEmailOrMobileNumber(mobileNumber, mobileNumber, mobileNumber);
+        List<Patient> patientEntities = patientRepository.getPatientEntitiesByApplicationIdOrEmailOrMobileNumber(mobileNumber, mobileNumber, mobileNumber);
         if(!patientEntities.isEmpty()){
             String otp = CommonUtils.getOtp();
             String countryCode = patientEntities.get(0).getCountryCode();
@@ -68,14 +68,14 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ResponseEntity<GenericResponse<List<PatientEntity>>> searchForPatient(String mobileOrEmail, String otp) {
-        List<PatientEntity> patientEntityList = patientRepository.getPatientEntitiesByApplicationIdOrEmailOrMobileNumber(mobileOrEmail, mobileOrEmail, mobileOrEmail)
-                .stream().sorted(Comparator.comparing(PatientEntity::getOtpExpiresIn)).collect(Collectors.toList());
-        if(patientEntityList!=null && !patientEntityList.isEmpty()){
-            Calendar otpExpiresIn = patientEntityList.get(0).getOtpExpiresIn();
+    public ResponseEntity<GenericResponse<List<Patient>>> searchForPatient(String mobileOrEmail, String otp) {
+        List<Patient> patientList = patientRepository.getPatientEntitiesByApplicationIdOrEmailOrMobileNumber(mobileOrEmail, mobileOrEmail, mobileOrEmail)
+                .stream().sorted(Comparator.comparing(Patient::getOtpExpiresIn)).collect(Collectors.toList());
+        if(patientList !=null && !patientList.isEmpty()){
+            Calendar otpExpiresIn = patientList.get(0).getOtpExpiresIn();
             Calendar calendar = Calendar.getInstance();
-            if(calendar.compareTo(otpExpiresIn)<=0 && patientEntityList.get(0).getOtp().equalsIgnoreCase(otp)){
-                return  ResponseEntity.ok(new GenericResponse<>(patientEntityList,null));
+            if(calendar.compareTo(otpExpiresIn)<=0 && patientList.get(0).getOtp().equalsIgnoreCase(otp)){
+                return  ResponseEntity.ok(new GenericResponse<>(patientList,null));
             }else{
                 Map<String,String> errors = new HashMap<>();
                 errors.put("generic_error","OTP is either wrong or expired");

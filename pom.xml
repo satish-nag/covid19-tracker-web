@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.covid19tracker.web</groupId>
-    <artifactId>covid19-tracker</artifactId>
+    <artifactId>covid19-tracker-web</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>covid19-tracker</name>
+    <name>covid19-tracker-web</name>
     <description>Covid19-tracker-web</description>
 
     <properties>
@@ -51,11 +51,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.4.200</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.16</version>
@@ -74,6 +69,11 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-ses</artifactId>
             <version>1.11.909</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.22</version>
         </dependency>
 
     </dependencies>

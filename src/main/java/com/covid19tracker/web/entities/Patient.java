@@ -16,7 +16,7 @@ import java.util.Calendar;
 @Entity
 @Getter
 @Setter
-public class PatientEntity {
+public class Patient {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -56,6 +56,10 @@ public class PatientEntity {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Calendar otpExpiresIn;
+
+    @ManyToOne
+    @JoinColumn(name = "hospitalCode")
+    private Hospital hospital;
 
 
 }

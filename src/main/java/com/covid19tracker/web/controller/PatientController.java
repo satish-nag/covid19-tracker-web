@@ -1,6 +1,6 @@
 package com.covid19tracker.web.controller;
 
-import com.covid19tracker.web.entities.PatientEntity;
+import com.covid19tracker.web.entities.Patient;
 import com.covid19tracker.web.models.GenericResponse;
 import com.covid19tracker.web.services.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.websocket.server.PathParam;
 import java.util.List;
 
 @RestController
@@ -20,9 +19,9 @@ public class PatientController {
     PatientService patientService;
 
     @PostMapping("/registerTest")
-    public ResponseEntity<GenericResponse<PatientEntity>> registerTest(@Valid @RequestBody PatientEntity patientEntity){
-        PatientEntity patientEntity1 = patientService.registerTest(patientEntity);
-        return ResponseEntity.ok(new GenericResponse<>(patientEntity1,null));
+    public ResponseEntity<GenericResponse<Patient>> registerTest(@Valid @RequestBody Patient patient){
+        Patient patient1 = patientService.registerTest(patient);
+        return ResponseEntity.ok(new GenericResponse<>(patient1,null));
     }
 
     @GetMapping("/getOtp")
@@ -31,7 +30,7 @@ public class PatientController {
     }
 
     @GetMapping("/searchForPatient")
-    public ResponseEntity<GenericResponse<List<PatientEntity>>> searchForPatient(@RequestParam String mobileOrEmail, @RequestParam String otp){
+    public ResponseEntity<GenericResponse<List<Patient>>> searchForPatient(@RequestParam String mobileOrEmail, @RequestParam String otp){
         return patientService.searchForPatient(mobileOrEmail,otp);
     }
 

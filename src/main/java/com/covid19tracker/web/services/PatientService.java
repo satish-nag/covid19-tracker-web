@@ -1,15 +1,15 @@
 package com.covid19tracker.web.services;
 
-import com.covid19tracker.web.entities.PatientEntity;
+import com.covid19tracker.web.entities.Patient;
 import com.covid19tracker.web.models.GenericResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 public interface PatientService {
-    PatientEntity registerTest(PatientEntity patientEntity);
+    Patient registerTest(Patient patient);
 
     ResponseEntity getOtp(String mobileNumber);
 
-    ResponseEntity<GenericResponse<List<PatientEntity>>> searchForPatient(String mobileOrEmail, String otp);
+    ResponseEntity<GenericResponse<List<Patient>>> searchForPatient(String mobileOrEmail, String otp);
 }
