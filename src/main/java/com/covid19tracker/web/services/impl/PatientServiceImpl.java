@@ -28,8 +28,8 @@ public class PatientServiceImpl implements PatientService {
     public Patient registerTest(Patient patient) {
         log.info("Registering the patient with name {}, mobile_number {}, email {}", patient.getName(), patient.getMobileNumber(), patient.getEmail());
         Patient patient1 = patientRepository.save(patient);
-        //awsHelper.sendSMS(patientEntity.getCountryCode()+patientEntity.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patientEntity1.getApplicationId()+", please save for future reference");
-        //awsHelper.sendEmail("saatish.naga@gmail.com",patientEntity.getEmail(),null,null,"Hi "+patientEntity.getName()+",<br/><br/>You have successfully registered for the test, your application id is "+patientEntity1.getApplicationId()+". Please save the application ID for future Reference</p> <br/><br/> Regards,<br/>Team COVID Tracker","Successfully Regersterd for COVID Test");
+        awsHelper.sendSMS(patient.getCountryCode()+patient.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patient.getApplicationId()+", please save for future reference");
+        awsHelper.sendEmail("saatish.naga@gmail.com",patient.getEmail(),null,null,"Hi "+patient.getName()+",<br/><br/>You have successfully registered for the test, your application id is "+patient.getApplicationId()+". Please save the application ID for future Reference</p> <br/><br/> Regards,<br/>Team COVID Tracker","Successfully Registered for COVID Test");
         log.info("Registration is successful for the patient {}, and application_id is {}", patient1.getName(), patient1.getApplicationId());
         return patient1;
     }
