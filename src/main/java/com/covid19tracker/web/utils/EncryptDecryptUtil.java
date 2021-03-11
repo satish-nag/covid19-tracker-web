@@ -1,15 +1,8 @@
 package com.covid19tracker.web.utils;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -42,7 +35,7 @@ public class EncryptDecryptUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String encrypt = encrypt("Satish@143","secretKey");
+        String encrypt = encrypt(args[0],"secretKey");
         System.out.println(encrypt);
         System.out.println(decrypt(encrypt,"secretKey"));
     }

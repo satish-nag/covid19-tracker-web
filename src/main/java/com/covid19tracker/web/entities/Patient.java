@@ -26,7 +26,7 @@ public class Patient {
     @NotEmpty(message = "Name should not be empty")
     private String name;
 
-    private String countryCode;
+//    private String countryCode;
 
     @NotEmpty(message = "Mobile Number should not be empty")
     @Size(min = 10,max = 10,message = "Mobile Number should be of 10 digits")

@@ -11,6 +11,7 @@ import com.covid19tracker.web.repositories.UserRepository;
 import com.covid19tracker.web.services.AdminService;
 import com.covid19tracker.web.utils.AWSHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,6 +32,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     AWSHelper awsHelper;
+
+    @Value("${mobile.countryCode}")
+    private String countryCode;
 
     @Override
     public ResponseEntity<GenericResponse<Object>> patientEntityList(String id) {
@@ -54,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
         patientRepository.saveAll(patientEntities).forEach(patientList::add);
         if(!patientList.isEmpty()){
             patientList.stream().forEach(patientEntity -> {
-                awsHelper.sendSMS(patientEntity.getCountryCode()+patientEntity.getMobileNumber(),"Your COVID test has been completed and result is "+patientEntity.getStatus()+" for application "+patientEntity.getApplicationId()+" tested on "+patientEntity.getCreatedTime());
+                awsHelper.sendSMS(countryCode+patientEntity.getMobileNumber(),"Your COVID test has been completed and result is "+patientEntity.getStatus()+" for application "+patientEntity.getApplicationId()+" tested on "+patientEntity.getCreatedTime());
                 awsHelper.sendEmail("saatish.naga@gmail.com",patientEntity.getEmail(),null,null,"Hi "+patientEntity.getName()+"<br/><br/> Your COVID test has been completed and result is "+patientEntity.getStatus()+" for application "+patientEntity.getApplicationId()+"tested on "+patientEntity.getCreatedTime()+"<br/><br/>Regards,<br/>Team Covid Tracker","Covid19 Result for Application ID"+patientEntity.getApplicationId());
             });
         }

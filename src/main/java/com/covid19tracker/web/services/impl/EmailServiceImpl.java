@@ -17,18 +17,18 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
-    @Value("${aws.accessKey}")
+    /*@Value("${aws.accessKey}")
     public String accessKey;
 
     @Value("${aws.secretKey}")
-    public String secretKey;
+    public String secretKey;*/
 
     AmazonSimpleEmailService simpleEmailService;
 
     @PostConstruct
     public void init(){
-        System.setProperty(AWSConstants.AWS_ACCESS_KEY_ID,accessKey);
-        System.setProperty(AWSConstants.AWS_SECRET_KEY,secretKey);
+        /*System.setProperty(AWSConstants.AWS_ACCESS_KEY_ID,accessKey);
+        System.setProperty(AWSConstants.AWS_SECRET_KEY,secretKey);*/
         simpleEmailService = AmazonSimpleEmailServiceClient.builder().withRegion(Regions.US_EAST_2).build();
     }
 

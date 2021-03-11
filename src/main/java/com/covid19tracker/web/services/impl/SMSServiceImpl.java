@@ -19,11 +19,11 @@ import java.util.HashMap;
 @Slf4j
 public class SMSServiceImpl implements SMSService {
 
-    @Value("${aws.accessKey}")
+    /*@Value("${aws.accessKey}")
     public String accessKey;
 
     @Value("${aws.secretKey}")
-    public String secretKey;
+    public String secretKey;*/
 
     AmazonSNS amazonSNSClient;
 
@@ -31,8 +31,8 @@ public class SMSServiceImpl implements SMSService {
 
     @PostConstruct
     public void init(){
-        System.setProperty(AWSConstants.AWS_ACCESS_KEY_ID,accessKey);
-        System.setProperty(AWSConstants.AWS_SECRET_KEY,secretKey);
+        /*System.setProperty(AWSConstants.AWS_ACCESS_KEY_ID,accessKey);
+        System.setProperty(AWSConstants.AWS_SECRET_KEY,secretKey);*/
         amazonSNSClient = AmazonSNSClient.builder().withRegion(Regions.US_EAST_2).build();
         messageAttributes = new HashMap<>();
         messageAttributes.put("AWS.SNS.SMS.SenderID",new MessageAttributeValue()

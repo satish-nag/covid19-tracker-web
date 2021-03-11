@@ -8,6 +8,7 @@ import com.covid19tracker.web.utils.AWSHelper;
 import com.covid19tracker.web.utils.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +25,17 @@ public class PatientServiceImpl implements PatientService {
     @Autowired
     AWSHelper awsHelper;
 
+    @Value("${mobile.countryCode}")
+    private String countryCode;
+
+    @Value("${from.email}")
+    private String fromEmail;
+
     @Override
     public Patient registerTest(Patient patient) {
         log.info("Registering the patient with name {}, mobile_number {}, email {}", patient.getName(), patient.getMobileNumber(), patient.getEmail());
         Patient patient1 = patientRepository.save(patient);
-        awsHelper.sendSMS(patient.getCountryCode()+patient.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patient.getApplicationId()+", please save for future reference");
+        awsHelper.sendSMS(countryCode+patient.getMobileNumber(),"You have successfully registered for the test, and your application id is "+patient.getApplicationId()+", please save for future reference");
         awsHelper.sendEmail("saatish.naga@gmail.com",patient.getEmail(),null,null,"Hi "+patient.getName()+",<br/><br/>You have successfully registered for the test, your application id is "+patient.getApplicationId()+". Please save the application ID for future Reference</p> <br/><br/> Regards,<br/>Team COVID Tracker","Successfully Registered for COVID Test");
         log.info("Registration is successful for the patient {}, and application_id is {}", patient1.getName(), patient1.getApplicationId());
         return patient1;
@@ -39,11 +46,10 @@ public class PatientServiceImpl implements PatientService {
         List<Patient> patientEntities = patientRepository.getPatientEntitiesByApplicationIdOrEmailOrMobileNumber(mobileNumber, mobileNumber, mobileNumber);
         if(!patientEntities.isEmpty()){
             String otp = CommonUtils.getOtp();
-            String countryCode = patientEntities.get(0).getCountryCode();
             if(!countryCode.startsWith("+"))
                 countryCode="+"+countryCode;
             boolean isOtpSent = awsHelper.sendSMS(countryCode + mobileNumber, "Your OTP: " + otp + ", your OTP is valid for 10 minutes only");
-            boolean isEmailSent = awsHelper.sendEmail("saatish.naga@gmail.com", patientEntities.get(0).getEmail(), null, null, "Hi " + patientEntities.get(0).getName() + ",<br/><br/>Your OTP for checking your application status is " + otp + "your OTP is Valid for only 10 minutes", "OTP to check status");
+            boolean isEmailSent = awsHelper.sendEmail(fromEmail, patientEntities.get(0).getEmail(), null, null, "Hi " + patientEntities.get(0).getName() + ",<br/><br/>Your OTP for checking your application status is " + otp + ", your OTP is Valid for only 10 minutes", "OTP to check status");
             if(isOtpSent || isEmailSent) {
                 patientEntities.stream().forEach(patientEntity -> {
                     patientEntity.setOtp(otp);
