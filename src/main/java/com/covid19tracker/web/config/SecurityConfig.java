@@ -67,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public static void main(String[] args) {
-        if(args==null || args.length < 1 || args[0]!=null || args[0].trim().isEmpty()){
+        if( args.length < 1 || args[0]==null || args[0].trim().isEmpty()){
             System.out.println("Password to encrypt is not provided");
             System.out.println("usage: java -jar <path_to_jar> <class_file> <password>");
             System.exit(1);
