@@ -1,5 +1,6 @@
 create user '<username>'@'%' identified by '<password>';
 GRANT ALL PRIVILEGES ON *.* TO '<username>'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 create database covid19tracker;
 use covid19tracker;
 create table authorities (authority varchar(255) not null, username varchar(255) not null, primary key (authority, username));
