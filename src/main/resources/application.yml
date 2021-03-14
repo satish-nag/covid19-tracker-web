@@ -17,4 +17,4 @@ spring:
       path: /api/v1/
 logging:
   file:
-    name: ${HOME}/covidtracker.log
+    name: ${HOME}/logs/covidtracker.log
