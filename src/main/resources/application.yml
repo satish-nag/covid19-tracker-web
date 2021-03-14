@@ -18,4 +18,4 @@ spring:
 logging:
   file:
     name: covidtracker.log
-    path: ${HOME}/logs/
+    path: ${HOME}/logs
