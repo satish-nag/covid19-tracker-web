@@ -66,6 +66,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         });
     }
 
+    // to create DB password for admin login for application
     public static void main(String[] args) {
         if( args.length < 1 || args[0]==null || args[0].trim().isEmpty()){
             System.out.println("Password to encrypt is not provided");

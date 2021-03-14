@@ -35,8 +35,19 @@ public class EncryptDecryptUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String encrypt = encrypt(args[0],"secretKey");
-        System.out.println(encrypt);
-        System.out.println(decrypt(encrypt,"secretKey"));
+        if( args.length < 2 || args[0]==null || args[0].trim().isEmpty() || args[1]==null || args[1].trim().isEmpty()) {
+            System.out.println("Password to encrypt is not provided");
+            System.out.println("usage: java -jar <path_to_jar> <class_file> <password> <encrypt/decrypt>");
+            System.exit(1);
+        }else {
+            switch (args[1]){
+                case "encrypt":
+                    System.out.println(encrypt(args[0],"secretKey"));
+                    break;
+                case "decrypt":
+                    System.out.println(decrypt(args[0],"secretKey"));
+                    break;
+            }
+        }
     }
 }
