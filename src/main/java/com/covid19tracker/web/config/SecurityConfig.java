@@ -67,7 +67,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public static void main(String[] args) {
-        System.out.println(new BCryptPasswordEncoder().encode("CovidTracker"));
+        if(args==null || args.length < 1 || args[0]!=null || args[0].trim().isEmpty()){
+            System.out.println("Password to encrypt is not provided");
+            System.out.println("usage: java -jar <path_to_jar> <class_file> <password>");
+            System.exit(1);
+        }else {
+            System.out.println(new BCryptPasswordEncoder().encode(args[0]));
+        }
     }
 
 }

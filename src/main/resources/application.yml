@@ -9,12 +9,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   datasource:
-    username: covid_tracker
-    password: B+LL6udNcoYkiJNPIvf0y0bx/t32doaULEh9AUJNA14=
+    username: <username>
+    password: <password>
     url: jdbc:mysql://localhost:3306/covid19tracker
   mvc:
     servlet:
       path: /api/v1/
-#aws:
-#  accessKey: AKIATDHGKMHMU7KZWOVP
-#  secretKey: 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
