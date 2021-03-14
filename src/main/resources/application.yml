@@ -9,7 +9,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   datasource:
-    username: <username>
+    username: ${user}
     password: ${encryptPass}
     url: jdbc:mysql://localhost:3306/covid19tracker
   mvc:
@@ -18,4 +18,4 @@ spring:
 logging:
   file:
     name: covidtracker.log
-    path: ${HOME}
+    path: ${HOME}/logs/
