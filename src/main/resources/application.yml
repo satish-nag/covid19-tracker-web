@@ -15,3 +15,7 @@ spring:
   mvc:
     servlet:
       path: /api/v1/
+logging:
+  file:
+    name: covidtracker.log
+    path: ${HOME}
