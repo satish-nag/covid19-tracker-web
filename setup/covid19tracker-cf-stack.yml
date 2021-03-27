@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template for creating Covid19Tracker application
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  DBRootPassword:
+    NoEcho: 'true'
+    Description: Root password for MySQL
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9@#]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+  DBUser:
+    Description: DB user for MySQL
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: Root password for MySQL
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9@#]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+  countryCode:
+    Description: Mobile Country code for sending SMS
+    Type: String
+    MinLength: '3'
+    MaxLength: '3'
+    AllowedPattern: '^(\+?\d{2})$'
+    ConstraintDescription: must start with + and 2 digits.    
+  fromMail:
+    Description: Email from whom we have to send address.
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: '^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$'
+    ConstraintDescription: must be a valid aws verified email address.    
+Resources:
+  SNSSESRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: SNS-SES-Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sns:*'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ses:*'
+                Resource: '*'
+  SESSNSInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref SNSSESRole 
+  Covid19TrackerWeb:
+    Type: 'AWS::EC2::Instance'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT20M
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          InstallAndConfigure:
+            - Install
+            - Configure
+        Install:
+          packages:
+            apt:
+             default-jdk: []
+             maven: []
+             git: []
+             mysql-server: []
+          files:
+            /home/ubuntu/setup.sh: 
+                content: !Sub |
+                            cd /home/ubuntu
+                            git clone https://github.com/om-soft-solutions/covid19-tracker-web.git
+                            sudo mysqladmin -u root password ${DBRootPassword}
+                            cat covid19-tracker-web/DBScripts/dbSetupStatements.sql | sed s/'<username>'/${DBUser}/g | sed s/'<password>'/${DBPassword}/g > covid19-tracker-web/DBScripts/dbSetupStatements_modfied.sql
+                            sudo mysql --user=root --password="${DBRootPassword}" < "covid19-tracker-web/DBScripts/dbSetupStatements_modfied.sql"
+                            cd covid19-tracker-web
+                            mvn clean package
+                            chown -R ubuntu:ubuntu /home/ubuntu
+                mode: '000400'
+                owner: root
+                group: root
+        Configure:
+          commands:
+            01_configure_api_server:
+              command: "sudo sh /home/ubuntu/setup.sh"
+    Properties:
+      IamInstanceProfile: !Ref SESSNSInstanceProfile      
+      ImageId: ami-08962a4068733a2b6
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref Covid19TrackerWebSG
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 15
+      Tags:
+        - Key: Name
+          Value: Covid19Tracker-Web
+      UserData: 
+        "Fn::Base64":
+            !Sub |
+             #!/bin/bash
+             sudo apt-get -y update && sudo apt-get -y upgrade && sudo apt-get install -y python3-pip
+             sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+             cfn-init -v --stack ${AWS::StackName} --resource Covid19TrackerWeb --configsets InstallAndConfigure --region ${AWS::Region}
+             cfn-signal -e $? --stack ${AWS::StackName} --resource Covid19TrackerWeb --region ${AWS::Region} 
+             cd /home/ubuntu/covid19-tracker-web
+             nohup java -jar -Dmobile.countryCode=${countryCode} -DHOME=/home/ubuntu -Dfrom.email=${fromMail} -DencryptPass=`java -cp target/covid19-tracker-web-1.0-SNAPSHOT.jar -Dloader.main=com.covid19tracker.web.utils.EncryptDecryptUtil org.springframework.boot.loader.PropertiesLauncher "${DBPassword}" "encrypt"` -Duser=${DBUser} target/covid19-tracker-web-1.0-SNAPSHOT.jar 2>/dev/null &
+             chown -R ubuntu:ubuntu /home/ubuntu
+  Covid19TrackerUI:
+    Type: 'AWS::EC2::Instance'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT10M
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          InstallAndConfigure:
+            - Install
+            - Configure
+        Install:
+          packages:
+            apt:
+              npm: []
+              nginx: []
+          files: 
+            /home/ubuntu/setup.sh:
+                content: !Sub |
+                        git clone https://github.com/om-soft-solutions/covid19-tracker-ui.git
+                        cd covid19-tracker-ui
+                        npm install --silent
+                        sudo chown $USER /var/www/html
+                        npm run build
+                        rm -r /var/www/html/*
+                        cp -r dist/covid19-tracker-ui/* /var/www/html/
+                        mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default_bak
+                        export publicHostname=`curl http://169.254.169.254/latest/meta-data/public-hostname`
+                        cat default | sed s/'<WEB SERVER IP>'/$publicHostname/g | sed s/'<API SERVER IP>'/${Covid19TrackerWeb.PrivateIp}/g > /etc/nginx/sites-available/default
+                        openssl req -newkey rsa:2048 -nodes -keyout /home/ubuntu/domain.key -x509 -days 365 -out /home/ubuntu/domain.crt -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com"
+                        sudo systemctl reload nginx
+                mode: '000400'
+                owner: root
+                group: root
+        Configure:
+          commands:
+            01_configure_web_server:
+              command: "sudo sh /home/ubuntu/setup.sh"
+    
+    Properties:
+      ImageId: ami-08962a4068733a2b6
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref Covid19TrackerUISG
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 10
+      Tags:
+        - Key: Name
+          Value: Covid19Tracker-UI
+      UserData: 
+        "Fn::Base64":
+            !Sub |
+             #!/bin/bash
+             sudo apt-get -y update && sudo apt-get -y upgrade && sudo apt-get install -y python3-pip
+             sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+             cfn-init -v --stack ${AWS::StackName} --resource Covid19TrackerUI --configsets InstallAndConfigure --region ${AWS::Region}
+             cfn-signal -e $? --stack ${AWS::StackName} --resource Covid19TrackerUI --region ${AWS::Region}              
+  Covid19TrackerUISG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable SSH, HTTP and HTTPS access via port 22, 80 and 443 respectively
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+  Covid19TrackerWebSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable api access on 8081 from only UI server
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '8081'
+          ToPort: '8081'
+          CidrIp: 172.31.0.0/16
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0          
+
+Outputs:
+  WebsiteURL:
+    Description: URL for stack
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !GetAtt 
+          - Covid19TrackerUI
+          - PublicDnsName
