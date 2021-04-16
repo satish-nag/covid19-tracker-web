@@ -1,10 +1,10 @@
 pipeline{
  agent any;
- checkout scm
 
  stages{
     stage('build'){
         steps{
+            checkout scm
             sh 'mvn clean install'
         }
     }
